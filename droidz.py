@@ -261,7 +261,10 @@ def incremental_update(threads=1):
     ids = [row[0] for row in cur.fetchall()]
 
     sticks = scrape_directs(ids, threads=threads)
-    insert_sticks(sticks)
+    try:
+        insert_sticks(sticks)
+    except KeyboardInterrupt:
+        sql.commit()
 
 def full_update(threads=1):
     for category in CATEGORIES:
@@ -273,7 +276,10 @@ def full_update(threads=1):
     ids = [row[0] for row in cur.fetchall()]
 
     sticks = scrape_directs(ids, threads=threads)
-    insert_sticks(sticks)
+    try:
+        insert_sticks(sticks)
+    except KeyboardInterrupt:
+        sql.commit()
 
 # DOWNLOAD
 ################################################################################
