@@ -388,24 +388,27 @@ def download_argparse(args):
         for id in args.ids:
             return download_stick(id, overwrite=args.overwrite, extract=args.extract)
 
-parser = argparse.ArgumentParser(description=__doc__)
-subparsers = parser.add_subparsers()
-
-p_update = subparsers.add_parser('update')
-p_update.add_argument('--full', dest='full', action='store_true')
-p_update.add_argument('--threads', dest='threads', type=int, default=1)
-p_update.set_defaults(func=update_argparse)
-
-p_download = subparsers.add_parser('download')
-p_download.add_argument('ids', nargs='+', default=None)
-p_download.add_argument('--overwrite', dest='overwrite', action='store_true')
-p_download.add_argument('--extract', dest='extract', action='store_true')
-p_download.set_defaults(func=download_argparse)
-
-@betterhelp.subparser_betterhelp(parser, main_docstring=DOCSTRING, sub_docstrings=SUB_DOCSTRINGS)
 def main(argv):
-    args = parser.parse_args(argv)
-    return args.func(args)
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers()
+
+    p_update = subparsers.add_parser('update')
+    p_update.add_argument('--full', dest='full', action='store_true')
+    p_update.add_argument('--threads', dest='threads', type=int, default=1)
+    p_update.set_defaults(func=update_argparse)
+
+    p_download = subparsers.add_parser('download')
+    p_download.add_argument('ids', nargs='+', default=None)
+    p_download.add_argument('--overwrite', dest='overwrite', action='store_true')
+    p_download.add_argument('--extract', dest='extract', action='store_true')
+    p_download.set_defaults(func=download_argparse)
+
+    return betterhelp.subparser_main(
+        argv,
+        parser,
+        main_docstring=DOCSTRING,
+        sub_docstrings=SUB_DOCSTRINGS,
+    )
 
 if __name__ == '__main__':
     raise SystemExit(main(sys.argv[1:]))
