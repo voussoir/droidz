@@ -299,7 +299,7 @@ def download_stick(id, overwrite=False, extract=False):
     response = request(download_link)
 
     os.makedirs(directory.absolute_path, exist_ok=True)
-    with open(filepath.absolute_path, 'wb') as handle:
+    with filepath.open('wb') as handle:
         handle.write(response.content)
 
     if extract and filepath.extension == 'zip':
