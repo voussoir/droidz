@@ -298,7 +298,7 @@ def download_stick(id, overwrite=False, extract=False):
     print(f'Downloading {id}')
     response = request(download_link)
 
-    os.makedirs(directory.absolute_path, exist_ok=True)
+    directory.makedirs(exist_ok=True)
     with filepath.open('wb') as handle:
         handle.write(response.content)
 
