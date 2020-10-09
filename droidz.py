@@ -135,6 +135,9 @@ def request(url):
     return response
 
 def scrape_direct(id, commit=True):
+    '''
+    Return the dict of Stick data for this ID.
+    '''
     url = f'http://droidz.org/direct/{id}'
     response = request(url)
     text = response.text
@@ -186,6 +189,9 @@ def scrape_direct(id, commit=True):
     return data
 
 def scrape_directs(ids, threads=1, commit=True):
+    '''
+    Given many Stick IDs, yield Stick datas.
+    '''
     if threads < 1:
         raise ValueError(threads)
 
@@ -199,15 +205,17 @@ def scrape_directs(ids, threads=1, commit=True):
             {'function': scrape_direct, 'args': [id], 'name': id}
             for id in ids
         ]
-        jobs = pool.add_many(kwargss)
-        while jobs:
-            job = jobs.pop(0)
-            job.join()
+        pool.add_many(kwargss)
+        for job in pool.result_generator():
             if job.exception:
                 raise job.exception
             yield job.value
 
 def scrape_category(category):
+    '''
+    Yield Stick IDs from all pages within this category. They are listed in
+    alphabetical order by Stick name.
+    '''
     page = 1
     all_directs = set()
     while True:
@@ -225,6 +233,9 @@ def scrape_category(category):
             yield id
 
 def scrape_latest():
+    '''
+    Yield the latest Stick IDs from the /stickmain homepage, most recent first.
+    '''
     url = 'http://droidz.org/stickmain/'
     response = request(url)
     soup = bs4.BeautifulSoup(response.text, 'html.parser')
@@ -256,8 +267,7 @@ def incremental_update(threads=1):
     else:
         print('No new sticks for incremental update.')
 
-    cur = sql.cursor()
-    cur.execute('SELECT id FROM sticks WHERE retrieved IS NULL')
+    cur = sql.execute('SELECT id FROM sticks WHERE retrieved IS NULL')
     ids = [row[0] for row in cur.fetchall()]
 
     sticks = scrape_directs(ids, threads=threads)
@@ -288,8 +298,7 @@ def download_stick(id, overwrite=False, extract=False):
     if directory.exists and not overwrite:
         return directory
 
-    cur = sql.cursor()
-    cur.execute('SELECT download_link FROM sticks WHERE id == ?', [id])
+    cur = sql.execute('SELECT download_link FROM sticks WHERE id == ?', [id])
     download_link = cur.fetchone()[0]
     filename = re.search(r'file=(.+)', download_link).group(1)
     filepath = directory.with_child(filename)
@@ -302,7 +311,7 @@ def download_stick(id, overwrite=False, extract=False):
     with filepath.open('wb') as handle:
         handle.write(response.content)
 
-    if extract and filepath.extension == 'zip':
+    if extract and WINRAR is not None and filepath.extension == 'zip':
         # As much as I would like to use Python's zipfile module, I found that
         # some of the .zips on the site are actually rars.
         command = [
