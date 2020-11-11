@@ -51,12 +51,18 @@ SQL_COLUMNS = sqlhelpers.extract_table_column_map(DB_INIT)
 sql = sqlite3.connect('sticks.db')
 sql.executescript(DB_INIT)
 
-USERAGENT = '''Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
-Chrome/79.0.3945.130 Safari/537.36'''.replace('\n', ' ').strip()
+
+USERAGENT = '''
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
+Chrome/79.0.3945.130 Safari/537.36
+'''.replace('\n', ' ').strip()
 
 HEADERS = {
     'User-Agent': USERAGENT
 }
+
+session = requests.Session()
+session.headers.update(HEADERS)
 
 DOWNLOAD_RATELIMITER = ratelimiter.Ratelimiter(allowance=1, period=5)
 
@@ -130,7 +136,7 @@ def insert_sticks(datas, commit=True):
 ################################################################################
 def request(url):
     print(url)
-    response = requests.get(url, headers=HEADERS)
+    response = session.get(url)
     response.raise_for_status()
     return response
 
