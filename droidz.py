@@ -9,6 +9,7 @@ import subprocess
 import sys
 import types
 
+from voussoirkit import betterhelp
 from voussoirkit import pathclass
 from voussoirkit import ratelimiter
 from voussoirkit import sqlhelpers
@@ -341,52 +342,6 @@ def download_all(overwrite=False, extract=False):
 
 # COMMAND LINE
 ################################################################################
-from voussoirkit import betterhelp
-
-DOCSTRING = '''
-Scrape sticks from droidz.org.
-
-{update}
-
-{download}
-
-TO SEE DETAILS ON EACH COMMAND, RUN
-> droidz.py <command> --help
-'''.lstrip()
-
-SUB_DOCSTRINGS = dict(
-update='''
-update:
-    Update the database with stick info.
-
-    > droidz.py update
-
-    flags:
-    --full:
-        Re-scrape all categories and all sticks to get fresh info.
-        Otherwise, only new sticks will be scraped.
-'''.strip(),
-
-download='''
-download:
-    Download the stick files.
-
-    > droidz.py download all
-    > droidz.py download [ids]
-
-    flags:
-    --overwrite:
-        Re-download any existing files. Otherwise they'll be skipped.
-
-    --extract:
-        Extract downloaded zip files.
-        NOTE: Some files on the site are labeled as .zip but are actually rars,
-        so this extraction process requires you to have winrar on your PATH.
-        Sorry.
-'''.strip(),
-)
-
-DOCSTRING = betterhelp.add_previews(DOCSTRING, SUB_DOCSTRINGS)
 
 def update_argparse(args):
     if args.full:
@@ -404,26 +359,74 @@ def download_argparse(args):
             return download_stick(id, overwrite=args.overwrite, extract=args.extract)
 
 def main(argv):
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description='Scrape sticks from droidz.org.')
     subparsers = parser.add_subparsers()
 
-    p_update = subparsers.add_parser('update')
-    p_update.add_argument('--full', dest='full', action='store_true')
-    p_update.add_argument('--threads', dest='threads', type=int, default=1)
+    ################################################################################################
+
+    p_update = subparsers.add_parser(
+        'update',
+        description='''
+        Update the database with stick info.
+        ''',
+    )
+    p_update.add_argument(
+        '--full',
+        dest='full',
+        action='store_true',
+        help='''
+        Re-scrape all categories and all sticks to get fresh info.
+        Otherwise, only new sticks will be scraped.
+        ''',
+    )
+    p_update.add_argument(
+        '--threads', dest='threads', type=int, default=1,
+    )
     p_update.set_defaults(func=update_argparse)
 
-    p_download = subparsers.add_parser('download')
-    p_download.add_argument('ids', nargs='+', default=None)
-    p_download.add_argument('--overwrite', dest='overwrite', action='store_true')
-    p_download.add_argument('--extract', dest='extract', action='store_true')
+    ################################################################################################
+
+    p_download = subparsers.add_parser(
+        'download',
+        description='''
+        Download the stick files.
+        ''',
+    )
+    p_download.examples = [
+        'all',
+        '100 200 300 --overwrite',
+    ]
+    p_download.add_argument(
+        'ids',
+        nargs='+',
+        default=None,
+        help='''
+        One or more stick IDs to download. You can use the word "all" to download
+        all sticks.
+        ''',
+    )
+    p_download.add_argument(
+        '--overwrite',
+        dest='overwrite',
+        action='store_true',
+        help='''
+        Re-download any existing files. Otherwise they'll be skipped.
+        ''',
+    )
+    p_download.add_argument(
+        '--extract',
+        dest='extract',
+        action='store_true',
+        help='''
+        Extract downloaded zip files.
+        NOTE: Some files on the site are labeled as .zip but are actually rars,
+        so this extraction process requires you to have winrar on your PATH.
+        Sorry.
+        ''',
+    )
     p_download.set_defaults(func=download_argparse)
 
-    return betterhelp.subparser_main(
-        argv,
-        parser,
-        main_docstring=DOCSTRING,
-        sub_docstrings=SUB_DOCSTRINGS,
-    )
+    return betterhelp.go(parser, argv)
 
 if __name__ == '__main__':
     raise SystemExit(main(sys.argv[1:]))
