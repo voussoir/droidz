@@ -91,9 +91,9 @@ def insert_id(id, commit=True):
     if not existing:
         data = {'id': id}
         columns = SQL_COLUMNS['sticks']
-        (qmarks, bindings) = sqlhelpers.insert_filler(columns, data, require_all=False)
+        (qmarks, bindings) = sqlhelpers.insert_filler(data)
 
-        query = f'INSERT INTO sticks VALUES({qmarks})'
+        query = f'INSERT INTO sticks {qmarks}'
         cur.execute(query, bindings)
 
         if commit:
@@ -118,8 +118,8 @@ def insert_stick(data, commit=True):
         (qmarks, bindings) = sqlhelpers.update_filler(data, 'id')
         query = f'UPDATE sticks {qmarks}'
     else:
-        (qmarks, bindings) = sqlhelpers.insert_filler(SQL_COLUMNS['sticks'], data)
-        query = f'INSERT INTO sticks VALUES({qmarks})'
+        (qmarks, bindings) = sqlhelpers.insert_filler(data)
+        query = f'INSERT INTO sticks {qmarks}'
 
     cur.execute(query, bindings)
 
