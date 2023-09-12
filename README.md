@@ -5,6 +5,8 @@ http://droidz.org/index.php
 
 ## Mirrors
 
+https://git.voussoir.net/voussoir/droidz
+
 https://github.com/voussoir/droidz
 
 https://gitlab.com/voussoir/droidz
